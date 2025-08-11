@@ -6,26 +6,20 @@ import {
   MDBCard,
   MDBCardBody,
   MDBBtn,
-  MDBTable,
-  MDBTableBody,
-  MDBTableHead,
   MDBDropdown,
   MDBDropdownMenu,
   MDBDropdownToggle,
   MDBDropdownItem,
-  MDBModal,
-  MDBModalDialog,
-  MDBModalContent,
-  MDBModalHeader,
-  MDBModalTitle,
-  MDBModalBody,
-  MDBModalFooter,
-  MDBInput
+  MDBModal
 } from 'mdb-react-ui-kit';
 import { Bar, Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 
-import mockPayments from '../../data/mockPayments';  // <-- import mock data
+import mockPayments from '../../../data/mockPayments';
+import IncomeForm from './IncomeForm';
+import IncomeList from './IncomeList';
+
+const connectedUser = "Andry";
 
 export default function IncomeDashboard() {
   const [payments, setPayments] = useState(mockPayments);
@@ -33,24 +27,18 @@ export default function IncomeDashboard() {
   const [receiverFilter, setReceiverFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [dateRangeFilter, setDateRangeFilter] = useState('jour');
-
+  const [showAll, setShowAll] = useState(false);
+  const [editPaymentId, setEditPaymentId] = useState(null);
   const [newPayment, setNewPayment] = useState({
     date: '',
     amount: '',
     paymentMethod: '',
-    receivedBy: '',
-    client: ''
+    receivedBy: connectedUser,
+    client: '',
+    comment: ''
   });
 
-  const handleAddPayment = () => {
-    setPayments([
-      ...payments,
-      { id: payments.length + 1, ...newPayment, amount: parseInt(newPayment.amount) }
-    ]);
-    setNewPayment({ date: '', amount: '', paymentMethod: '', receivedBy: '', client: '' });
-    setModalOpen(false);
-  };
-
+  // Filtrage
   const filteredData = payments.filter(p =>
     (methodFilter ? p.paymentMethod === methodFilter : true) &&
     (receiverFilter ? p.receivedBy === receiverFilter : true)
@@ -58,6 +46,7 @@ export default function IncomeDashboard() {
 
   const totalAmount = filteredData.reduce((acc, curr) => acc + curr.amount, 0);
 
+  // Graph 1 : Total par méthode
   const chartDataByPaymentMethod = {
     labels: [...new Set(filteredData.map(p => p.paymentMethod))],
     datasets: [
@@ -71,6 +60,7 @@ export default function IncomeDashboard() {
     ]
   };
 
+  // Graph 2 : Rentrées par période
   const now = new Date();
   const chart2DataFiltered = filteredData.filter(p => {
     const d = new Date(p.date);
@@ -98,16 +88,47 @@ export default function IncomeDashboard() {
         data: chart2DataFiltered.map(p => p.amount),
         fill: false,
         borderColor: '#36a2eb',
-        tension: 0.4, // courbe lissée
+        tension: 0.4,
         backgroundColor: '#36a2eb'
       }
     ]
+  };
+
+  // Gestion ajout / édition
+  const handleAddOrEditPayment = () => {
+    if (editPaymentId) {
+      setPayments(payments.map(p =>
+        p.id === editPaymentId && p.receivedBy === connectedUser
+          ? { ...p, ...newPayment, amount: parseInt(newPayment.amount) }
+          : p
+      ));
+      setEditPaymentId(null);
+    } else {
+      setPayments([
+        ...payments,
+        { id: payments.length + 1, ...newPayment, amount: parseInt(newPayment.amount) }
+      ]);
+    }
+    setNewPayment({ date: '', amount: '', paymentMethod: '', receivedBy: connectedUser, client: '', comment: '' });
+    setModalOpen(false);
+  };
+
+  // Edition
+  const handleEditPayment = (payment) => {
+    if (payment.receivedBy !== connectedUser) {
+      alert("Vous ne pouvez modifier que vos propres entrées.");
+      return;
+    }
+    setEditPaymentId(payment.id);
+    setNewPayment(payment);
+    setModalOpen(true);
   };
 
   return (
     <MDBContainer className="py-5">
       <h2 className="mb-4 text-center">📈 Dashboard des rentrées d'argent</h2>
 
+      {/* Filtres */}
       <MDBRow className="mb-4">
         <MDBCol md="4">
           <MDBDropdown>
@@ -144,6 +165,7 @@ export default function IncomeDashboard() {
         </MDBCol>
       </MDBRow>
 
+      {/* Graphiques */}
       <MDBRow className="mb-4">
         <MDBCol md="6">
           <Bar data={chartDataByPaymentMethod} />
@@ -167,59 +189,46 @@ export default function IncomeDashboard() {
         </MDBCol>
       </MDBRow>
 
+      {/* Bouton ajout */}
       <MDBRow className="mb-4">
         <MDBCol>
-          <MDBBtn onClick={() => setModalOpen(true)}>➕ Ajouter une entrée</MDBBtn>
+          <MDBBtn onClick={() => {
+            setEditPaymentId(null);
+            setNewPayment({
+              date: '',
+              amount: '',
+              paymentMethod: '',
+              receivedBy: connectedUser,
+              client: '',
+              comment: ''
+            });
+            setModalOpen(true);
+          }}>➕ Ajouter une entrée</MDBBtn>
         </MDBCol>
       </MDBRow>
 
+      {/* Liste */}
       <MDBRow>
         <MDBCol>
-          <MDBTable striped bordered hover>
-            <MDBTableHead>
-              <tr>
-                <th>Date</th>
-                <th>Montant (MGA)</th>
-                <th>Mode de paiement</th>
-                <th>Client</th>
-                <th>Reçu par</th>
-              </tr>
-            </MDBTableHead>
-            <MDBTableBody>
-              {filteredData.map(p => (
-                <tr key={p.id}>
-                  <td>{p.date}</td>
-                  <td>{p.amount.toLocaleString()}</td>
-                  <td>{p.paymentMethod}</td>
-                  <td>{p.client}</td>
-                  <td>{p.receivedBy}</td>
-                </tr>
-              ))}
-            </MDBTableBody>
-          </MDBTable>
+          <IncomeList
+            payments={filteredData}
+            onEdit={handleEditPayment}
+            connectedUser={connectedUser}
+            showAll={showAll}
+            setShowAll={setShowAll}
+          />
         </MDBCol>
       </MDBRow>
 
+      {/* Modal */}
       <MDBModal open={modalOpen} setOpen={setModalOpen} tabIndex='-1'>
-        <MDBModalDialog>
-          <MDBModalContent>
-            <MDBModalHeader>
-              <MDBModalTitle>Ajouter une entrée</MDBModalTitle>
-              <MDBBtn className='btn-close' color='none' onClick={() => setModalOpen(false)}></MDBBtn>
-            </MDBModalHeader>
-            <MDBModalBody>
-              <MDBInput label='Date' type='date' className='mb-3' value={newPayment.date} onChange={(e) => setNewPayment({ ...newPayment, date: e.target.value })} />
-              <MDBInput label='Montant' type='number' className='mb-3' value={newPayment.amount} onChange={(e) => setNewPayment({ ...newPayment, amount: e.target.value })} />
-              <MDBInput label='Mode de paiement' className='mb-3' value={newPayment.paymentMethod} onChange={(e) => setNewPayment({ ...newPayment, paymentMethod: e.target.value })} />
-              <MDBInput label='Client' className='mb-3' value={newPayment.client} onChange={(e) => setNewPayment({ ...newPayment, client: e.target.value })} />
-              <MDBInput label='Reçu par' className='mb-3' value={newPayment.receivedBy} onChange={(e) => setNewPayment({ ...newPayment, receivedBy: e.target.value })} />
-            </MDBModalBody>
-            <MDBModalFooter>
-              <MDBBtn color='secondary' onClick={() => setModalOpen(false)}>Annuler</MDBBtn>
-              <MDBBtn onClick={handleAddPayment}>Ajouter</MDBBtn>
-            </MDBModalFooter>
-          </MDBModalContent>
-        </MDBModalDialog>
+        <IncomeForm
+          newPayment={newPayment}
+          setNewPayment={setNewPayment}
+          onClose={() => setModalOpen(false)}
+          onSubmit={handleAddOrEditPayment}
+          editMode={!!editPaymentId}
+        />
       </MDBModal>
     </MDBContainer>
   );

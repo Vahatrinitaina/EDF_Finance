@@ -60,7 +60,7 @@ function Register() {
           <div className="d-flex flex-column ms-5">
             <div className="text-center">
               <img
-                src="https://scontent.ftmm1-2.fna.fbcdn.net/v/t39.30808-6/462169722_924548943026492_1298369492030758461_n.jpg"
+                src="https://scontent.ftmm1-2.fna.fbcdn.net/v/t39.30808-6/462169722_924548943026492_1298369492030758461_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeGR1q_Ky7zPu4z5wP3GbsVo9nQY-ztt1lH2dBj7O23WUa8r6YUV6GijK3u7cmuHcZgEb-L30Mz4K9j_DIXuIHxy&_nc_ohc=ABZ4ztcqm1QQ7kNvwF0iG1a&_nc_oc=AdmHo_WkLKewwdYtwOuclrIesDD01bzrMomT4iNs6VWGc1mJqcerFOuh0dYtKJKiZwY&_nc_zt=23&_nc_ht=scontent.ftmm1-2.fna&_nc_gid=2yfctZUmXnbmY93GO-lsjA&oh=00_AfViV-H96HeT8M_cEjctN0mzxRuVAQbJ4i0krLoSVeRQCQ&oe=689B84AE"
                 style={{ width: '185px' }}
                 alt="logo"
               />

@@ -56,9 +56,10 @@ N'hésitez pas à contacter le support technique en cas de problème de connexio
 
             <div className="d-flex flex-row align-items-center justify-content-center pb-4 mb-4">
               <p className="mb-0">Pas de compte?</p>
-              <MDBBtn outline className='mx-2' color='danger'>
+             <a href="/register"> <MDBBtn outline className='mx-2' color='danger'>
+                
                 S'inscrire
-              </MDBBtn>
+              </MDBBtn></a>
             </div>
           </div>
         </MDBCol>
