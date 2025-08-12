@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './components/Login.jsx';
 import Register from './components/Register.jsx';
 import IncomeDashboard from './pages/Dashboards/Income/IncomeDashboard.jsx';
+import 'mdb-react-ui-kit/dist/css/mdb.min.css';
 
 import ClientsList from './pages/ClientsList.jsx';
 import ProjectsList from './pages/ProjectsList.jsx';

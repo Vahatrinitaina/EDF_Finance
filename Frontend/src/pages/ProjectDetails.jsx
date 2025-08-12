@@ -1,30 +1,16 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  MDBProgress,
-  MDBProgressBar,
-  MDBTable,
-  MDBTableHead,
-  MDBTableBody,
-  MDBBtn,
-  MDBInput,
-  MDBFile,
-  MDBModal,
-  MDBModalDialog,
-  MDBModalContent,
-  MDBModalHeader,
-  MDBModalTitle,
-  MDBModalBody,
-  MDBModalFooter,
-  MDBCard,
-  MDBCardBody,
-  MDBCardHeader,
-  MDBContainer,
-  MDBTypography,
-  MDBTabs,
-  MDBTabsItem,
-  MDBTabsLink,
-} from 'mdb-react-ui-kit';
+  Container,
+  Card,
+  ProgressBar,
+  Table,
+  Button,
+  Modal,
+  Form,
+  Tabs,
+  Tab,
+} from 'react-bootstrap';
 import { Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 
@@ -61,7 +47,6 @@ const filtres = ['Semaine', 'Mois', 'Année'];
 export default function ProjectDetails() {
   const { clientId, projectId } = useParams();
 
-  // Simul utilisateur connecté (à remplacer)
   const user = { nom: 'Utilisateur Connecté', role: 'employe' };
 
   const project = mockProjects[projectId] || null;
@@ -74,10 +59,7 @@ export default function ProjectDetails() {
     fichier: null,
   });
   const [filtreActif, setFiltreActif] = useState('Mois');
-
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const toggleModal = () => setModalOpen(!modalOpen);
+  const [modalShow, setModalShow] = useState(false);
 
   const calculAvancement = () => {
     if (!project) return 0;
@@ -86,17 +68,17 @@ export default function ProjectDetails() {
     const now = new Date();
     if (now > fin) return 100;
     if (now < debut) return 0;
-    const total = fin - debut;
-    const ecoule = now - debut;
+    const total = fin.getTime() - debut.getTime();
+    const ecoule = now.getTime() - debut.getTime();
     return Math.round((ecoule / total) * 100);
   };
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === 'fichier') {
-      setForm(f => ({ ...f, fichier: files[0] }));
+      setForm((f) => ({ ...f, fichier: files[0] || null }));
     } else {
-      setForm(f => ({ ...f, [name]: value }));
+      setForm((f) => ({ ...f, [name]: value }));
     }
   };
 
@@ -114,9 +96,9 @@ export default function ProjectDetails() {
       commentaire: form.commentaire,
       fichier: form.fichier,
     };
-    setDepenses(prev => [...prev, nouvelleDepense]);
+    setDepenses((prev) => [...prev, nouvelleDepense]);
     setForm({ date: '', montant: '', commentaire: '', fichier: null });
-    toggleModal();
+    setModalShow(false);
   };
 
   const getDataChart = () => {
@@ -128,7 +110,7 @@ export default function ProjectDetails() {
       for (let i = 1; i <= 31; i++) labels.push(i.toString());
       for (let i = 1; i <= 31; i++) {
         const somme = depenses
-          .filter(d => {
+          .filter((d) => {
             const dDate = new Date(d.date);
             return (
               dDate.getDate() === i &&
@@ -144,7 +126,7 @@ export default function ProjectDetails() {
       labels.push(...jours);
       for (let i = 0; i < 7; i++) {
         const somme = depenses
-          .filter(d => {
+          .filter((d) => {
             const dDate = new Date(d.date);
             return dDate.getDay() === i && dDate.getFullYear() === now.getFullYear();
           })
@@ -152,11 +134,24 @@ export default function ProjectDetails() {
         dataPoints.push(somme);
       }
     } else if (filtreActif === 'Année') {
-      const mois = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+      const mois = [
+        'Jan',
+        'Fév',
+        'Mar',
+        'Avr',
+        'Mai',
+        'Juin',
+        'Juil',
+        'Aoû',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Déc',
+      ];
       labels.push(...mois);
       for (let i = 0; i < 12; i++) {
         const somme = depenses
-          .filter(d => {
+          .filter((d) => {
             const dDate = new Date(d.date);
             return dDate.getMonth() === i && dDate.getFullYear() === now.getFullYear();
           })
@@ -179,160 +174,152 @@ export default function ProjectDetails() {
     };
   };
 
+  if (!project) {
+    return (
+      <Container className="my-5">
+        <h5>Projet non trouvé</h5>
+      </Container>
+    );
+  }
+
   return (
-    <MDBContainer className="my-5">
-      {!project ? (
-        <MDBTypography tag="h5">Projet non trouvé</MDBTypography>
-      ) : (
-        <>
-          <MDBCard>
-            <MDBCardHeader>
-              <MDBTypography tag="h3">{project.nom}</MDBTypography>
-            </MDBCardHeader>
-            <MDBCardBody>
-              <div className="mb-4">
-                <strong>Avancement :</strong>
-                <MDBProgress style={{ height: '30px', borderRadius: '15px' }}>
-                  <MDBProgressBar
-                    width={calculAvancement()}
-                    label={`${calculAvancement()}%`}
-                    style={{ borderRadius: '15px' }}
-                  />
-                </MDBProgress>
-              </div>
+    <Container className="my-5">
+      <Card>
+        <Card.Header>
+          <h3>{project.nom}</h3>
+        </Card.Header>
+        <Card.Body>
+          <div className="mb-4">
+            <strong>Avancement :</strong>
+            <ProgressBar
+              now={calculAvancement()}
+              label={`${calculAvancement()}%`}
+              style={{ height: '30px', borderRadius: '15px' }}
+            />
+          </div>
 
-              <div className="mb-4">
-                <strong>Budget :</strong> {project.budget.toLocaleString('fr-FR')} Ar
-              </div>
+          <div className="mb-4">
+            <strong>Budget :</strong> {project.budget.toLocaleString('fr-FR')} Ar
+          </div>
 
-              <MDBTypography tag="h4" className="mb-3">
-                Dépenses
-              </MDBTypography>
+          <h4 className="mb-3">Dépenses</h4>
 
-              <MDBTable hover responsive>
-                <MDBTableHead dark>
-                  <tr>
-                    <th>Nom</th>
-                    <th>Date</th>
-                    <th>Montant (Ar)</th>
-                    <th>Commentaire</th>
-                    <th>Facture</th>
+          <Table hover responsive>
+            <thead className="table-dark">
+              <tr>
+                <th>Nom</th>
+                <th>Date</th>
+                <th>Montant (Ar)</th>
+                <th>Commentaire</th>
+                <th>Facture</th>
+              </tr>
+            </thead>
+            <tbody>
+              {depenses.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center">
+                    Aucune dépense enregistrée
+                  </td>
+                </tr>
+              ) : (
+                depenses.map((d) => (
+                  <tr key={d.id}>
+                    <td>{d.nom}</td>
+                    <td>{d.date}</td>
+                    <td>{d.montant.toLocaleString('fr-FR')}</td>
+                    <td>{d.commentaire}</td>
+                    <td>{d.fichier ? d.fichier.name : '-'}</td>
                   </tr>
-                </MDBTableHead>
-                <MDBTableBody>
-                  {depenses.length === 0 ? (
-                    <tr>
-                      <td colSpan="5" className="text-center">
-                        Aucune dépense enregistrée
-                      </td>
-                    </tr>
-                  ) : (
-                    depenses.map(d => (
-                      <tr key={d.id}>
-                        <td>{d.nom}</td>
-                        <td>{d.date}</td>
-                        <td>{d.montant.toLocaleString('fr-FR')}</td>
-                        <td>{d.commentaire}</td>
-                        <td>{d.fichier ? d.fichier.name : '-'}</td>
-                      </tr>
-                    ))
-                  )}
-                </MDBTableBody>
-              </MDBTable>
+                ))
+              )}
+            </tbody>
+          </Table>
 
-              <MDBBtn color="success" className="my-4" onClick={toggleModal}>
-                Ajouter une dépense
-              </MDBBtn>
+          <Button variant="success" className="my-4" onClick={() => setModalShow(true)}>
+            Ajouter une dépense
+          </Button>
 
-              <MDBTypography tag="h4" className="mb-3">
-                Récapitulatif des dépenses
-              </MDBTypography>
+          <h4 className="mb-3">Récapitulatif des dépenses</h4>
 
-              <MDBTabs className="mb-3">
-                {filtres.map(f => (
-                  <MDBTabsItem key={f}>
-                    <MDBTabsLink
-                      onClick={() => setFiltreActif(f)}
-                      active={filtreActif === f}
-                    >
-                      {f}
-                    </MDBTabsLink>
-                  </MDBTabsItem>
-                ))}
-              </MDBTabs>
+          <Tabs
+            activeKey={filtreActif}
+            onSelect={(k) => setFiltreActif(k)}
+            className="mb-3"
+          >
+            {filtres.map((f) => (
+              <Tab eventKey={f} title={f} key={f} />
+            ))}
+          </Tabs>
 
-              <Line data={getDataChart()} />
+          <Line data={getDataChart()} />
 
-              {/* Modal pour ajout dépense */}
-              <MDBModal show={modalOpen} setShow={setModalOpen} tabIndex="-1">
-                <MDBModalDialog>
-                  <MDBModalContent>
-                    <MDBModalHeader>
-                      <MDBModalTitle>Ajouter une dépense</MDBModalTitle>
-                      <MDBBtn
-                        className="btn-close"
-                        color="none"
-                        onClick={toggleModal}
-                      />
-                    </MDBModalHeader>
-                    <form onSubmit={handleSubmit}>
-                      <MDBModalBody>
-                        <MDBInput
-                          label="Nom"
-                          value={user.nom}
-                          disabled
-                          className="mb-3"
-                        />
-                        <MDBInput
-                          type="date"
-                          label="Date"
-                          name="date"
-                          value={form.date}
-                          onChange={handleChange}
-                          required
-                          className="mb-3"
-                        />
-                        <MDBInput
-                          type="number"
-                          label="Montant (Ar)"
-                          name="montant"
-                          value={form.montant}
-                          onChange={handleChange}
-                          required
-                          className="mb-3"
-                        />
-                        <MDBInput
-                          type="text"
-                          label="Commentaire"
-                          name="commentaire"
-                          value={form.commentaire}
-                          onChange={handleChange}
-                          required
-                          className="mb-3"
-                        />
-                        <MDBFile
-                          label="Upload facture (optionnel)"
-                          name="fichier"
-                          onChange={handleChange}
-                          className="mb-3"
-                        />
-                      </MDBModalBody>
-                      <MDBModalFooter>
-                        <MDBBtn color="secondary" onClick={toggleModal}>
-                          Annuler
-                        </MDBBtn>
-                        <MDBBtn type="submit" color="success">
-                          Enregistrer
-                        </MDBBtn>
-                      </MDBModalFooter>
-                    </form>
-                  </MDBModalContent>
-                </MDBModalDialog>
-              </MDBModal>
-            </MDBCardBody>
-          </MDBCard>
-        </>
-      )}
-    </MDBContainer>
+          {/* Modal ajout dépense */}
+          <Modal show={modalShow} onHide={() => setModalShow(false)} centered>
+            <Modal.Header closeButton>
+              <Modal.Title>Ajouter une dépense</Modal.Title>
+            </Modal.Header>
+            <Form onSubmit={handleSubmit}>
+              <Modal.Body>
+                <Form.Group className="mb-3">
+                  <Form.Label>Nom</Form.Label>
+                  <Form.Control value={user.nom} disabled />
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="depenseDate">
+                  <Form.Label>Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    name="date"
+                    value={form.date}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="depenseMontant">
+                  <Form.Label>Montant (Ar)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="montant"
+                    value={form.montant}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="depenseCommentaire">
+                  <Form.Label>Commentaire</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="commentaire"
+                    value={form.commentaire}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3" controlId="depenseFichier">
+                  <Form.Label>Upload facture (optionnel)</Form.Label>
+                  <Form.Control
+                    type="file"
+                    name="fichier"
+                    onChange={handleChange}
+                  />
+                </Form.Group>
+              </Modal.Body>
+
+              <Modal.Footer>
+                <Button variant="secondary" onClick={() => setModalShow(false)}>
+                  Annuler
+                </Button>
+                <Button variant="success" type="submit">
+                  Enregistrer
+                </Button>
+              </Modal.Footer>
+            </Form>
+          </Modal>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 }
