@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './Login.css';
 import {
   MDBBtn,
@@ -8,13 +10,18 @@ import {
   MDBInput
 } from 'mdb-react-ui-kit';
 
-function App() {
+function Login() {
+  const navigate = useNavigate();
+
   const fullText = `   Ce dernier servira surtout de support pour la gestion des finances de l'entreprise. 
 Vous pourrez y suivre vos dépenses, établir des budgets et analyser vos habitudes de consommation. 
 Une partie dédiée à la collecte des financements de l'entreprise sera par ailleurs disponible pour les utilisateurs autorisés. 
 N'hésitez pas à contacter le support technique en cas de problème de connexion.    `;
 
   const [displayedText, setDisplayedText] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let index = 0;
@@ -26,9 +33,38 @@ N'hésitez pas à contacter le support technique en cas de problème de connexio
         clearInterval(interval);
       }
     }, 20);
-
     return () => clearInterval(interval);
   }, []);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      alert('Veuillez saisir email et mot de passe.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await axios.post('http://localhost:5000/api/auth/login', {
+        email,
+        password
+      });
+
+      // Connexion réussie
+      alert(res.data.message);
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+
+      // Redirection vers dashboard
+      navigate('/dashboard');
+
+    } catch (err) {
+      console.error(err);
+      const msg = err.response?.data?.message || 'Erreur serveur';
+      alert(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <MDBContainer className="my-5 gradient-form">
@@ -46,20 +82,39 @@ N'hésitez pas à contacter le support technique en cas de problème de connexio
 
             <p>Commencez par vous connecter</p>
 
-            <MDBInput wrapperClass='mb-4' label='Adresse Email' id='form1' type='email' />
-            <MDBInput wrapperClass='mb-4' label='Mot de passe' id='form2' type='password' />
+            <MDBInput
+              wrapperClass='mb-4'
+              label='Adresse Email'
+              id='form1'
+              type='email'
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <MDBInput
+              wrapperClass='mb-4'
+              label='Mot de passe'
+              id='form2'
+              type='password'
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
 
             <div className="text-center pt-1 mb-5 pb-1">
-              <MDBBtn className="mb-4 w-100 gradient-custom-2">Se connecter</MDBBtn>
+              <MDBBtn
+                className="mb-4 w-100 gradient-custom-2"
+                onClick={handleLogin}
+                disabled={loading}
+              >
+                {loading ? 'Connexion...' : 'Se connecter'}
+              </MDBBtn>
               <a className="text-muted" href="#!">Mot de passe oublié?</a>
             </div>
 
             <div className="d-flex flex-row align-items-center justify-content-center pb-4 mb-4">
               <p className="mb-0">Pas de compte?</p>
-             <a href="/register"> <MDBBtn outline className='mx-2' color='danger'>
-                
-                S'inscrire
-              </MDBBtn></a>
+              <a href="/register">
+                <MDBBtn outline className='mx-2' color='danger'>S'inscrire</MDBBtn>
+              </a>
             </div>
           </div>
         </MDBCol>
@@ -77,4 +132,4 @@ N'hésitez pas à contacter le support technique en cas de problème de connexio
   );
 }
 
-export default App;
+export default Login;

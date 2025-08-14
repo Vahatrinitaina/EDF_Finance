@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import {
   MDBBtn,
   MDBContainer,
@@ -9,6 +11,8 @@ import {
 import './Login.css';
 
 function Register() {
+  const navigate = useNavigate();
+
   const fullText = `     Rejoignez EDF Finance et commencez dès maintenant à gérer vos finances avec efficacité et transparence. 
   L'inscription est gratuite pour tous les employés autorisés.
   Veillez à utiliser une adresse email valide.`;
@@ -19,6 +23,7 @@ function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     let index = 0;
@@ -34,8 +39,13 @@ function Register() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+[\]{};':"\\|,.<>/?]).{8,}$/;
+
+    if (!fullname || !email || !password || !confirmPassword) {
+      setError("Tous les champs sont obligatoires.");
+      return;
+    }
 
     if (!passwordRegex.test(password)) {
       setError("Le mot de passe doit contenir au moins 8 caractères, une majuscule, un chiffre et un caractère spécial.");
@@ -47,10 +57,30 @@ function Register() {
       return;
     }
 
-    // A ce stade, tout est bon
     setError('');
-    alert("Inscription réussie !");
-    // Tu peux ici appeler l'API d'enregistrement
+    setSuccess('');
+
+    try {
+      const res = await axios.post('http://localhost:5000/api/auth/register', {
+        name: fullname,
+        email,
+        password
+      });
+
+      alert('Inscription réussie ! Veuillez vérifier votre email pour activer votre compte.');
+
+      // Réinitialiser les champs
+      setFullname('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+
+      // Redirection vers la page login
+      navigate('/login');
+
+    } catch (err) {
+      setError(err.response?.data?.message || "Erreur serveur lors de l'inscription");
+    }
   };
 
   return (
@@ -69,14 +99,17 @@ function Register() {
 
             <p>Créer un compte</p>
 
-            <MDBInput wrapperClass='mb-4' label='Nom complet' id='fullname' type='text' value={fullname} onChange={(e) => setFullname(e.target.value)} />
-            <MDBInput wrapperClass='mb-4' label='Adresse Email' id='email' type='email' value={email} onChange={(e) => setEmail(e.target.value)} />
-            <MDBInput wrapperClass='mb-4' label='Mot de passe' id='password' type='password' value={password} onChange={(e) => setPassword(e.target.value)} />
-            <MDBInput wrapperClass='mb-4' label='Confirmer le mot de passe' id='confirmPassword' type='password' value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+            <MDBInput wrapperClass='mb-4' label='Nom complet' id='fullname' type='text'
+              value={fullname} onChange={(e) => setFullname(e.target.value)} />
+            <MDBInput wrapperClass='mb-4' label='Adresse Email' id='email' type='email'
+              value={email} onChange={(e) => setEmail(e.target.value)} />
+            <MDBInput wrapperClass='mb-4' label='Mot de passe' id='password' type='password'
+              value={password} onChange={(e) => setPassword(e.target.value)} />
+            <MDBInput wrapperClass='mb-4' label='Confirmer le mot de passe' id='confirmPassword' type='password'
+              value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
 
-            {error && (
-              <div className="text-danger mb-3">{error}</div>
-            )}
+            {error && <div className="text-danger mb-3">{error}</div>}
+            {success && <div className="text-success mb-3">{success}</div>}
 
             <div className="text-center pt-1 mb-5 pb-1">
               <MDBBtn className="mb-4 w-100 gradient-custom-2" onClick={handleRegister}>S'inscrire</MDBBtn>

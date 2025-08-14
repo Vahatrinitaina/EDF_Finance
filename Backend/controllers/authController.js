@@ -1,5 +1,4 @@
 const db = require('../config/db'); // Connexion MySQL
-const bcrypt = require('bcrypt');
 const { v4: uuidv4 } = require('uuid');
 const sendVerificationEmail = require('../utils/sendVerificationEmail');
 const jwt = require('jsonwebtoken');
