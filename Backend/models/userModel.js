@@ -19,11 +19,20 @@ const User = {
     });
   },
 
+  // Récupérer un utilisateur par email
+  getByEmail: (email, callback) => {
+    const sql = 'SELECT * FROM users WHERE email = ?';
+    db.query(sql, [email], (err, results) => {
+      if (err) return callback(err);
+      callback(null, results[0]);
+    });
+  },
+
   // Créer un nouvel utilisateur
   create: (userData, callback) => {
-    const { name, email, password, role } = userData;
-    const sql = 'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)';
-    db.query(sql, [name, email, password, role], (err, results) => {
+    const { name, email, password, role, verification_code, verification_expiry } = userData;
+    const sql = 'INSERT INTO users (name, email, password, role, verification_code, verification_expiry) VALUES (?, ?, ?, ?, ?, ?)';
+    db.query(sql, [name, email, password, role || 'user', verification_code || null, verification_expiry || null], (err, results) => {
       if (err) return callback(err);
       callback(null, { id: results.insertId, ...userData });
     });
@@ -47,6 +56,24 @@ const User = {
       callback(null, results);
     });
   },
+
+  // Mettre à jour le code de réinitialisation et l'expiration
+  setResetCode: (email, code, expiry, callback) => {
+    const sql = 'UPDATE users SET verification_code = ?, verification_expiry = ? WHERE email = ?';
+    db.query(sql, [code, expiry, email], (err, results) => {
+      if (err) return callback(err);
+      callback(null, results);
+    });
+  },
+
+  // Mettre à jour le mot de passe et effacer le code de réinitialisation
+  resetPassword: (id, hashedPassword, callback) => {
+    const sql = 'UPDATE users SET password = ?, verification_code = NULL, verification_expiry = NULL WHERE id = ?';
+    db.query(sql, [hashedPassword, id], (err, results) => {
+      if (err) return callback(err);
+      callback(null, results);
+    });
+  }
 };
 
 module.exports = User;

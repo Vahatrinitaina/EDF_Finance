@@ -8,6 +8,8 @@ import ClientsList from './pages/ClientsList.jsx';
 import ProjectsList from './pages/ProjectsList.jsx';
 import ProjectDetails from './pages/ProjectDetails.jsx';
 import VerifyEmail from './services/verifyEmail.jsx';
+import ForgotPassword from './components/ForgotPassword.jsx';
+import ResetPassword from './components/ResetPassword.jsx';
 
 function App() {
   return (
@@ -30,6 +32,13 @@ function App() {
         <Route path="/clients" element={<ClientsList />} />
         <Route path="/clients/:clientId/projects" element={<ProjectsList />} />
         <Route path="/clients/:clientId/projects/:projectId" element={<ProjectDetails />} />
+
+
+        {/* Réinitialisation mot de passe */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
+
 
         {/* Page 404 - Catch all */}
         <Route path="*" element={<NotFound />} />

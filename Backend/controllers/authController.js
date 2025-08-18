@@ -3,6 +3,9 @@ const { v4: uuidv4 } = require('uuid');
 const sendVerificationEmail = require('../utils/sendVerificationEmail');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const sendEmail = require('../utils/sendEmail'); // si tu l'as déjà, pas besoin
+
 
 const sendEmail = require('../utils/sendEmail'); 
 const crypto = require('crypto');
@@ -244,4 +247,78 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
+// Demande de réinitialisation du mot de passe
+exports.requestPasswordReset = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: 'Email requis.' });
+
+  try {
+    // Vérifier si l'utilisateur existe
+    const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé.' });
+    }
+
+    // Générer code + expiration (15 minutes)
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+
+    // Mettre à jour user avec code + expiry
+    await db.query(
+      'UPDATE users SET verification_code = ?, verification_expiry = ? WHERE email = ?',
+      [resetCode, expiry, email]
+    );
+
+    // Envoyer email avec le code
+    const subject = 'Code de réinitialisation du mot de passe';
+    const body = `Voici votre code de réinitialisation : ${resetCode}. Il est valable 15 minutes.`;
+
+    await sendEmail(email, subject, body);
+
+    res.status(200).json({ message: 'Code de réinitialisation envoyé par mail.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+};
+
+// Réinitialisation du mot de passe
+exports.resetPassword = async (req, res) => {
+  const { email, verificationCode, newPassword } = req.body;
+  if (!email || !verificationCode || !newPassword) {
+    return res.status(400).json({ message: 'Email, code et nouveau mot de passe requis.' });
+  }
+
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM users WHERE email = ? AND verification_code = ?',
+      [email, verificationCode]
+    );
+
+    if (rows.length === 0) {
+      return res.status(400).json({ message: 'Code invalide ou email incorrect.' });
+    }
+
+    const user = rows[0];
+    const now = new Date();
+
+    if (user.verification_expiry < now) {
+      return res.status(400).json({ message: 'Le code a expiré.' });
+    }
+
+    // Hash du nouveau mot de passe
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Mise à jour du mot de passe et suppression du code
+    await db.query(
+      'UPDATE users SET password = ?, verification_code = NULL, verification_expiry = NULL WHERE id = ?',
+      [hashedPassword, user.id]
+    );
+
+    res.status(200).json({ message: 'Mot de passe modifié avec succès.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Erreur serveur.' });
+  }
+};
 

@@ -107,7 +107,7 @@ N'hésitez pas à contacter le support technique en cas de problème de connexio
               >
                 {loading ? 'Connexion...' : 'Se connecter'}
               </MDBBtn>
-              <a className="text-muted" href="#!">Mot de passe oublié?</a>
+              <a className="text-muted" href="/forgot-password">Mot de passe oublié?</a>
             </div>
 
             <div className="d-flex flex-row align-items-center justify-content-center pb-4 mb-4">
