@@ -4,11 +4,7 @@ const sendVerificationEmail = require('../utils/sendVerificationEmail');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const sendEmail = require('../utils/sendEmail'); // si tu l'as déjà, pas besoin
-
-
 const sendEmail = require('../utils/sendEmail'); 
-const crypto = require('crypto');
 
 exports.register = async (req, res) => {
   const { name, email, password } = req.body;
