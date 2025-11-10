@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import NavbarUser from '../../../components/NavbarUser';
+import AddFundsModal from "../../../components/AddFundsModal";
+
 import {
   MDBContainer,
   MDBRow,
@@ -45,6 +47,25 @@ export default function IncomeDashboard() {
     client: '',
     comment: ''
   });
+
+  const [showAddFundsModal, setShowAddFundsModal] = useState(false);
+const [userRole, setUserRole] = useState("user"); // on le récupérera du localStorage
+
+useEffect(() => {
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  if (storedUser?.role) {
+    setUserRole(storedUser.role);
+  }
+}, []);
+
+useEffect(() => {
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  console.log("Utilisateur connecté :", storedUser);
+  if (storedUser?.role) {
+    setUserRole(storedUser.role);
+  }
+}, []);
+
 
   // Met à jour le champ "receivedBy" quand connectedUser change
   useEffect(() => {
@@ -140,6 +161,24 @@ export default function IncomeDashboard() {
   return (
     <>
   <NavbarUser />
+  <MDBContainer className="py-5">
+  <div className="d-flex justify-content-between align-items-center mb-4">
+    <h2>📈 Dashboard des rentrées d'argent</h2>
+
+    {/* Visible uniquement si directeur */}
+    {userRole === "directeur" && (
+      <MDBBtn color="success" onClick={() => setShowAddFundsModal(true)}>
+        💵 Ajouter des fonds
+      </MDBBtn>
+    )}
+  </div>
+
+  {/* ... reste du contenu du dashboard ... */}
+
+  {/* Modal d’ajout de fonds */}
+  <AddFundsModal show={showAddFundsModal} setShow={setShowAddFundsModal} />
+</MDBContainer>
+
     <MDBContainer className="py-5">
       <h2 className="mb-4 text-center">📈 Dashboard des rentrées d'argent</h2>
 

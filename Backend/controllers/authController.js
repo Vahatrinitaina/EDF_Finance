@@ -81,15 +81,17 @@ exports.login = async (req, res) => {
     );
 
     // ✅ Envoi d'une réponse claire et standardisée
-    res.status(200).json({
+  res.status(200).json({
   message: 'Connexion réussie',
   token,
   user: {
     id: user.id,
     name: user.name,
-    email: user.email
+    email: user.email,
+    role: user.role 
   }
 });
+
 
 
   } catch (err) {

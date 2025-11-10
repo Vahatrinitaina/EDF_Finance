@@ -7,6 +7,9 @@ const expenseRoutes = require('./routes/expenses');
 const userRoutes = require('./routes/users');
 const clientRoutes = require('./routes/clients');  // Nouvelle importation des routes clients
 const authRoutes = require('./routes/auth'); // <-- ajout
+const refillRoutes = require('./routes/refillRoutes');
+
+
 
 dotenv.config();
 
@@ -22,6 +25,7 @@ app.use('/api/invoices', invoiceRoutes);// route factures
 app.use('/api/categories', categoryRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/refill', refillRoutes);
 
 const PORT = process.env.PORT || 5000;
 
