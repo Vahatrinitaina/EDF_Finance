@@ -11,6 +11,9 @@ import VerifyEmail from './services/verifyEmail.jsx';
 import ForgotPassword from './components/ForgotPassword.jsx';
 import ResetPassword from './components/ResetPassword.jsx';
 
+// Import de l'ErrorBoundary
+import ErrorBoundary from './components/ErrorBoundary.jsx';
+
 function App() {
   return (
     <BrowserRouter>
@@ -25,20 +28,21 @@ function App() {
 
         <Route path="/verify-email" element={<VerifyEmail />} /> {/*verification email*/}
 
-        {/* Dashboard */}
-        <Route path="/dashboard/income" element={<IncomeDashboard />} />
+        {/* Dashboard avec ErrorBoundary */}
+        <Route path="/dashboard/income" element={
+          <ErrorBoundary>
+            <IncomeDashboard />
+          </ErrorBoundary>
+        } />
 
         {/* Nouvelle section clients / projets */}
         <Route path="/clients" element={<ClientsList />} />
         <Route path="/clients/:clientId/projects" element={<ProjectsList />} />
         <Route path="/clients/:clientId/projects/:projectId" element={<ProjectDetails />} />
 
-
         {/* Réinitialisation mot de passe */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-
-
 
         {/* Page 404 - Catch all */}
         <Route path="*" element={<NotFound />} />
