@@ -62,3 +62,7 @@ Thumbs.db
 
 # JetBrains IDEs
 .idea/
+
+Backend/back.env
+node_modules/
+.env

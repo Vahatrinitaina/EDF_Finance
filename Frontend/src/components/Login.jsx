@@ -23,6 +23,10 @@ N'hésitez pas à contacter le support technique en cas de problème de connexio
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+<<<<<<< HEAD
+=======
+  // Effet pour l’animation du texte
+>>>>>>> origin/master
   useEffect(() => {
     let index = 0;
     const interval = setInterval(() => {
@@ -49,6 +53,7 @@ N'hésitez pas à contacter le support technique en cas de problème de connexio
         password
       });
 
+<<<<<<< HEAD
       // Connexion réussie
       alert(res.data.message);
       localStorage.setItem('token', res.data.token);
@@ -56,6 +61,22 @@ N'hésitez pas à contacter le support technique en cas de problème de connexio
 
       // Redirection vers dashboard
       navigate('/dashboard');
+=======
+      // 🔍 Vérifions ce que le backend renvoie
+      console.log("Réponse du backend :", res.data);
+
+      if (res.data && res.data.user) {
+        // ✅ Stocke les infos nécessaires
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        localStorage.setItem('username', res.data.user.name || ''); // ← important
+
+        alert(res.data.message || 'Connexion réussie ✅');
+        navigate('/dashboard/income'); // redirection vers le dashboard finance
+      } else {
+        alert('Erreur : utilisateur non trouvé dans la réponse.');
+      }
+>>>>>>> origin/master
 
     } catch (err) {
       console.error(err);

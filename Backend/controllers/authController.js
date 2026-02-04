@@ -53,43 +53,50 @@ exports.register = async (req, res) => {
   }
 };
 
-
 exports.login = async (req, res) => {
   const { email, password } = req.body;
+
   if (!email || !password)
-    return res.status(400).json({ message: 'Email et mot de passe requis' });
+    return res.status(400).json({ success: false, message: 'Email et mot de passe requis' });
 
   try {
     const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
     if (rows.length === 0)
-      return res.status(401).json({ message: 'Identifiants invalides' });
+      return res.status(401).json({ success: false, message: 'Identifiants invalides' });
 
     const user = rows[0];
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid)
-      return res.status(401).json({ message: 'Identifiants invalides' });
+      return res.status(401).json({ success: false, message: 'Identifiants invalides' });
 
-    if (!user.is_verified)
-      return res.status(403).json({ message: 'Email non vérifié' });
+    // ⚠️ Désactivation temporaire de la vérif email
+    // if (!user.verified)
+    //   return res.status(403).json({ success: false, message: 'Email non vérifié' });
 
+    // ✅ Génération du token JWT
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
 
-    res.status(200).json({
-      message: 'Connexion réussie',
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email
-      }
-    });
+    // ✅ Envoi d'une réponse claire et standardisée
+  res.status(200).json({
+  message: 'Connexion réussie',
+  token,
+  user: {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role 
+  }
+});
+
+
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Erreur serveur' });
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
 
